@@ -1,0 +1,119 @@
+const int Pins[3][3] = {
+  {13, 12, 11},  // LED 1: Rojo, Azul, Verde
+  {9, 8, 7},    // LED 2: Rojo, Azul, Verde
+  {5, 4, 3}     // LED 3: Rojo, Azul, Verde
+};
+
+// Pin del interruptor
+const int switchPin = 2;  
+bool lastSwitchState = HIGH; 
+unsigned long previousMillis = 0;
+const long sequenceInterval = 700; 
+const long blinkInterval = 200; 
+int sequenceStep = 0;
+bool ledBlinking = false; 
+
+void setup() {
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      pinMode(Pins[i][j], OUTPUT);
+    }
+  }
+  pinMode(switchPin, INPUT_PULLUP);
+  Serial.begin(9600);
+  initializeLEDs();
+}
+
+void loop() {
+  bool currentSwitchState = digitalRead(switchPin);
+
+  if (currentSwitchState == LOW) {
+    if (lastSwitchState == HIGH) {
+      previousMillis = millis();
+      sequenceStep = 0;
+      ledBlinking = false;
+    }
+
+    unsigned long currentMillis = millis();
+    if (currentMillis - previousMillis >= sequenceInterval) {
+      previousMillis = currentMillis;
+
+      // Secuencias de LEDs
+      if (sequenceStep < 6) {
+        sequenceStep++;
+      } else {
+        sequenceStep = 1; // Reiniciar secuencia desde 1
+      }
+
+      // Ejecutar la secuencia
+      switch (sequenceStep) {
+        case 1:
+          setColor(Pins[0], LOW, LOW, HIGH); // LED 1: verde
+          setColor(Pins[1], HIGH, LOW, LOW); // LED 2: rojo
+          setColor(Pins[2], HIGH, LOW, LOW); // LED 3: rojo
+          break;
+        case 2:
+          setColor(Pins[0], HIGH, LOW, LOW); // LED 1: rojo
+          setColor(Pins[1], LOW, LOW, HIGH); // LED 2: verde
+          setColor(Pins[2], HIGH, LOW, LOW); // LED 3: rojo
+          break;
+        case 3:
+          setColor(Pins[0], HIGH, LOW, LOW); // LED 1: rojo
+          setColor(Pins[1], HIGH, LOW, LOW); // LED 2: rojo
+          setColor(Pins[2], LOW, LOW, HIGH); // LED 3: verde
+          break;
+        case 4:
+          setColor(Pins[0], HIGH, LOW, LOW); // LED 1: rojo
+          setColor(Pins[1], HIGH, LOW, LOW); // LED 2: rojo
+          setColor(Pins[2], LOW, LOW, HIGH); // LED 3: verde
+          break;
+        case 5:
+          setColor(Pins[0], HIGH, LOW, LOW); // LED 1: rojo
+          setColor(Pins[1], LOW, LOW, HIGH); // LED 2: verde
+          setColor(Pins[2], HIGH, LOW, LOW); // LED 3: rojo
+          break;
+        case 6:
+          setColor(Pins[0], LOW, LOW, HIGH); // LED 1: verde
+          setColor(Pins[1], HIGH, LOW, LOW); // LED 2: rojo
+          setColor(Pins[2], HIGH, LOW, LOW); // LED 3: rojo
+          break;
+      }
+    }
+  } else {
+    if (!ledBlinking) {
+      previousMillis = millis(); 
+      ledBlinking = true;
+    }
+
+    unsigned long currentMillis = millis();
+    if (currentMillis - previousMillis >= blinkInterval) {
+      previousMillis = currentMillis;
+      static bool ledState = false;
+      ledState = !ledState;
+
+      if (ledState) {
+        setColor(Pins[0], HIGH, LOW, HIGH); // LED 1: amarillo
+        setColor(Pins[1], HIGH, LOW, HIGH); // LED 2: amarillo
+        setColor(Pins[2], HIGH, LOW, HIGH); // LED 3: amarillo
+      } else {
+        setColor(Pins[0], LOW, LOW, LOW); // Apagar LED 1
+        setColor(Pins[1], LOW, LOW, LOW); // Apagar LED 2
+        setColor(Pins[2], LOW, LOW, LOW); // Apagar LED 3
+      }
+    }
+  }
+
+  lastSwitchState = currentSwitchState;
+}
+
+void setColor(const int* ledPins, bool red, bool blue, bool green) {
+  digitalWrite(ledPins[0], red ? HIGH : LOW);    
+  digitalWrite(ledPins[1], blue ? HIGH : LOW);   
+  digitalWrite(ledPins[2], green ? HIGH : LOW);  
+}
+
+void initializeLEDs() {
+  setColor(Pins[0], LOW, LOW, LOW);
+  setColor(Pins[1], LOW, LOW, LOW);
+  setColor(Pins[2], LOW, LOW, LOW);
+}
